@@ -14,20 +14,20 @@ tmrTimerID_t timer3sID;
 osaTaskId_t gTimerTaskHandler_ID;
 /* Local variable to store the current state of the LEDs */
 static ledStatus_t ledsState = RED;
+volatile uint8_t gLedCount = 0;
 
 /* This is the function called by the Timer each time it expires */
 static void taskTimerCallback(void *param)
 {
-	OSA_EventSet(timerEvents, gTimerTaskEvent2_c);
+	OSA_EventSet(timerEvents, gTimerTaskEvent1_c);
 }
 
-void timer_Task(osaTaskParam_t argument)
+void My_Task(osaTaskParam_t argument)
 {
 	osaEventFlags_t customEvent;
-	myTimerID = TMR_AllocateTimer();
 	while(1)
 	{
-		OSA_EventWait(mMyEvents, osaEventFlagsAll_c, FALSE, osaWaitForever_c,
+		OSA_EventWait(timerEvents, osaEventFlagsAll_c, FALSE, osaWaitForever_c,
 				&customEvent);
 		if( !gUseRtos_c && !customEvent)
 		{
@@ -36,26 +36,19 @@ void timer_Task(osaTaskParam_t argument)
 		/* Depending on the received event */
 		switch(customEvent){
 		case gTimerTaskEvent1_c:
-			TurnOffLeds(); /* Ensure all LEDs are turned off */
+			/* 3 seconds passed so increment LED count */
+			increment_LedCount();
 			break;
-		case gTimerTaskEvent2_c: /* Event called from myTaskTimerCallback */
-			if(!ledsState) {
-				TurnOnLeds();
-				ledsState = 1;
-			}
-			else {
-				TurnOffLeds();
-				ledsState = 0;
-			}
+		case gTimerTaskEvent2_c: /* Switch 3 pressed */
+			set_LedCount(GREEN);
 			break;
-		case gTimerTaskEvent3_c: /* Event to stop the timer */
-			ledsState = 0;
-			TurnOffLeds();
-			TMR_StopTimer(myTimerID);
+		case gTimerTaskEvent3_c: /* Switch 4 pressed */
+			set_LedCount(BLUE);
 			break;
 		default:
 			break;
 		}
+
 	}
 }
 
@@ -64,7 +57,7 @@ void timerTask_Init(void)
 {
 	timerEvents = OSA_EventCreate(TRUE);
 	/* The instance of the MAC is passed at task creaton */
-	gMyTaskHandler_ID = OSA_TaskCreate(OSA_TASK(timer_Task), NULL);
+	gTimerTaskHandler_ID = OSA_TaskCreate(OSA_TASK(My_Task), NULL);
 }
 
 void timer3s_Start(void)
@@ -80,8 +73,43 @@ void timer3s_Start(void)
 /* Public function to send an event to stop the timer */
 void timer3s_Stop(void)
 {
-	OSA_EventSet(mMyEvents, gTimerTaskEvent3_c);
+	OSA_EventSet(timerEvents, gTimerTaskEvent3_c);
 }
 
+void increment_LedCount()
+{
+    gLedCount++;
+    if(gLedCount > WHITE )
+    {
+        gLedCount = RED ;
+    }
+}
 
+void set_LedCount(uint8_t newCount)
+{
+	if(newCount <= WHITE)
+	{
+		gLedCount = newCount;
+	}
+}
 
+void set_LedState()
+{
+    LED_TurnOffAllLeds();
+
+    switch (  gLedCount )
+    {
+    case  0 :
+        LED_TurnOnLed(LED2);
+        break;
+    case  1  :
+        LED_TurnOnLed(LED3);
+        break;
+    case  2 :
+        LED_TurnOnLed(LED4);
+        break;
+    case  3 :
+        LED_TurnOnAllLeds();
+        break;
+    }
+}

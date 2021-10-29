@@ -16,6 +16,7 @@
 #include "fsl_common.h"
 #include "EmbeddedTypes.h"
 #include "fsl_os_abstraction.h"
+#include "Keyboard.h"
 
 /* Define the available Task's Events */
 #define gTimerTaskEvent1_c (1 << 0)
@@ -37,5 +38,11 @@ void timer3s_Start(void);
 void timer3s_Stop(void);
 
 void timerTask_Init(void);
+
+void increment_LedCount(void);
+
+void set_LedCount(uint8_t newCount);
+
+void set_LedState();
 
 #endif /* TIMERS_H_ */
