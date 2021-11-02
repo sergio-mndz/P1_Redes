@@ -52,14 +52,23 @@ void My_Task(osaTaskParam_t argument)
 			set_LedState();
 
 			force_green_led= 1 ;
-			//resetTimer();
+
+			resetTimer();
 			break;
 		case gTimerTaskEvent3_c: /* Switch 4 pressed */
 			set_LedCount(BLUE);
 			set_LedState();
 
 			force_blue_led = 1 ;
-			//resetTimer();
+			resetTimer();
+			break;
+		case gTimerTaskEvent4_c:
+			TMR_StopTimer(timer3sID);
+			TMR_StartIntervalTimer(timer3sID, /*myTimerID*/
+					3000, /* Timer's Timeout */
+					taskTimerCallback, /* pointer to myTaskTimerCallback function */
+					NULL
+			);
 			break;
 		default:
 			break;
@@ -91,18 +100,13 @@ void timer3s_Start(void)
 
 void resetTimer(void)
 {
-	timer3sID = TMR_AllocateTimer();
-	TMR_StartIntervalTimer(timer3sID, /*myTimerID*/
-			3000, /* Timer's Timeout */
-			taskTimerCallback, /* pointer to myTaskTimerCallback function */
-			NULL
-	);
+	OSA_EventSet(timerEvents, gTimerTaskEvent4_c);
 }
 
 /* Public function to send an event to stop the timer */
 void timer3s_Stop(void)
 {
-	OSA_EventSet(timerEvents, gTimerTaskEvent3_c);
+	OSA_EventSet(timerEvents, gTimerTaskEvent4_c);
 }
 
 void increment_LedCount()

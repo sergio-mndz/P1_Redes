@@ -22,6 +22,7 @@
 #define gTimerTaskEvent1_c (1 << 0)
 #define gTimerTaskEvent2_c (1 << 1)
 #define gTimerTaskEvent3_c (1 << 2)
+#define gTimerTaskEvent4_c (1 << 3)
 
 #define gTimerTaskPriority_c 3
 #define gTimerTaskStackSize_c 400
