@@ -107,6 +107,7 @@ static int8_t gCounterPreviousVal = -1 ;
  *************************************************************************************
  ************************************************************************************/
 
+extern osaEventId_t timerEvents;
 
 /************************************************************************************
  *************************************************************************************
@@ -1295,7 +1296,15 @@ static void App_HandleKeys
 	case gKBD_EventSW1_c:
 	case gKBD_EventSW2_c:
 	case gKBD_EventSW3_c:
+		if(stateListen == gState)
+		{
+			OSA_EventSet(timerEvents, gTimerTaskEvent2_c);
+		}
 	case gKBD_EventSW4_c:
+		if(stateListen == gState)
+		{
+			OSA_EventSet(timerEvents, gTimerTaskEvent3_c);
+		}
 #if gTsiSupported_d
 	case gKBD_EventSW5_c:
 	case gKBD_EventSW6_c:

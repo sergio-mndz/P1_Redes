@@ -8,7 +8,6 @@
 #include "Timers.h"
 
 osaEventId_t timerEvents;
-osaEventId_t myTaskEvents;
 /* Global Variable to store our TimerID */
 tmrTimerID_t timer3sID;
 /* Handler ID for task */
@@ -47,10 +46,12 @@ void My_Task(osaTaskParam_t argument)
 		case gTimerTaskEvent2_c: /* Switch 3 pressed */
 			set_LedCount(GREEN);
 			set_LedState();
+			resetTimer();
 			break;
 		case gTimerTaskEvent3_c: /* Switch 4 pressed */
 			set_LedCount(BLUE);
 			set_LedState();
+			resetTimer();
 			break;
 		default:
 			break;
@@ -71,6 +72,16 @@ void timerTask_Init(void)
 }
 
 void timer3s_Start(void)
+{
+	timer3sID = TMR_AllocateTimer();
+	TMR_StartIntervalTimer(timer3sID, /*myTimerID*/
+		3000, /* Timer's Timeout */
+		taskTimerCallback, /* pointer to myTaskTimerCallback function */
+		NULL
+	);
+}
+
+void resetTimer(void)
 {
 	timer3sID = TMR_AllocateTimer();
 	TMR_StartIntervalTimer(timer3sID, /*myTimerID*/

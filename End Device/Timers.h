@@ -35,6 +35,8 @@ typedef enum {
 
 void timer3s_Start(void);
 
+void resetTimer(void);
+
 void timer3s_Stop(void);
 
 void timerTask_Init(void);
