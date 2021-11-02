@@ -27,6 +27,8 @@
 #include "MemManager.h"
 #include "TimersManager.h"
 #include "FunctionLib.h"
+#include <stdio.h>
+#include <string.h>
 
 #if mEnterLowPowerWhenIdle_c
   #include "PWR_Interface.h"
@@ -1117,6 +1119,66 @@ static void App_TransmitUartData(void)
         OSA_EventSet(mAppEvent, gAppEvtRxFromUart_c);
     }
 }
+
+void transmit_Count(uint8_t counter)
+{
+	uint16_t count = 10;
+	uint8_t message[] = "Counter: ";
+	uint8_t number[1];
+
+	sprintf(number, "%d", counter);
+
+	strcat(message, number);
+
+	if(mpPacket == NULL)
+	{
+		mpPacket = MSG_Alloc(sizeof(nwkToMcpsMessage_t) + gMaxPHYPacketSize_c);
+	}
+
+
+
+	if(mpPacket != NULL)
+	{
+		/* Data is available in the SerialManager's receive buffer. Now create an
+	        MCPS-Data Request message containing the data. */
+		mpPacket->msgType = gMcpsDataReq_c;
+		mpPacket->msgData.dataReq.pMsdu = (uint8_t*)(&mpPacket->msgData.dataReq.pMsdu) +
+				sizeof(mpPacket->msgData.dataReq.pMsdu);
+		Serial_Read(interfaceId, mpPacket->msgData.dataReq.pMsdu, count, &count);
+		mpPacket->msgData.dataReq.pMsdu = message;
+		/* Create the header using coordinator information gained during
+	        the scan procedure. Also use the short address we were assigned
+	        by the coordinator during association. */
+		FLib_MemCpy(&mpPacket->msgData.dataReq.dstAddr, &mCoordInfo.coordAddress, 8);
+		FLib_MemCpy(&mpPacket->msgData.dataReq.srcAddr, &maMyAddress, 8);
+		FLib_MemCpy(&mpPacket->msgData.dataReq.dstPanId, &mCoordInfo.coordPanId, 2);
+		FLib_MemCpy(&mpPacket->msgData.dataReq.srcPanId, &mCoordInfo.coordPanId, 2);
+		mpPacket->msgData.dataReq.dstAddrMode = mCoordInfo.coordAddrMode;
+		mpPacket->msgData.dataReq.srcAddrMode = mAddrMode;
+		mpPacket->msgData.dataReq.msduLength = count;
+		/* Request MAC level acknowledgement of the data packet */
+		mpPacket->msgData.dataReq.txOptions = gMacTxOptionsAck_c;
+		/* Give the data packet a handle. The handle is
+	        returned in the MCPS-Data Confirm message. */
+		mpPacket->msgData.dataReq.msduHandle = mMsduHandle++;
+		/* Don't use security */
+		mpPacket->msgData.dataReq.securityLevel = gMacSecurityNone_c;
+
+		/* Send the Data Request to the MCPS */
+		(void)NWK_MCPS_SapHandler(mpPacket, macInstance);
+
+		/* Prepare for another data buffer */
+		mpPacket = NULL;
+		mcPendingPackets++;
+	}
+    Serial_RxBufferByteCount(interfaceId, &count);
+
+    if( count )
+    {
+        OSA_EventSet(mAppEvent, gAppEvtRxFromUart_c);
+    }
+}
+
 
 /******************************************************************************
 * The App_ReceiveUartData() function will check if it is time to send out an

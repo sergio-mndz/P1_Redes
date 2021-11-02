@@ -13,7 +13,7 @@ tmrTimerID_t timer3sID;
 /* Handler ID for task */
 osaTaskId_t gTimerTaskHandler_ID;
 /* Local variable to store the current state of the LEDs */
-static ledStatus_t ledsState = RED;
+//static ledStatus_t ledsState = RED;
 volatile uint8_t gLedCount = 0;
 
 /* This is the function called by the Timer each time it expires */
@@ -38,12 +38,16 @@ void My_Task(osaTaskParam_t argument)
 		case gTimerTaskEvent1_c:
 			/* 3 seconds passed so increment LED count */
 			increment_LedCount();
+			set_LedState();
+
 			break;
 		case gTimerTaskEvent2_c: /* Switch 3 pressed */
 			set_LedCount(GREEN);
+			set_LedState();
 			break;
 		case gTimerTaskEvent3_c: /* Switch 4 pressed */
 			set_LedCount(BLUE);
+			set_LedState();
 			break;
 		default:
 			break;
@@ -51,6 +55,9 @@ void My_Task(osaTaskParam_t argument)
 
 	}
 }
+
+/* OSA Task Definition*/
+OSA_TASK_DEFINE(My_Task, gTimerTaskPriority_c, 1, gTimerTaskStackSize_c, FALSE );
 
 /* Function to init the task */
 void timerTask_Init(void)
