@@ -141,7 +141,7 @@ uint8_t *temp_msg;
 
 static g_Node_t node_network[MAX_NODES];
 static bool_t isNodeNew = false;
-static uint8_t nodeAddr = 0;
+static uint8_t nodeAddr = 1;
 
 static uint8_t temp_capInfoRxWhenIdle_c;
 static uint8_t temp_capInfoDavideFfd_c;
@@ -787,9 +787,9 @@ static uint8_t App_SendAssociateResponse(nwkMessage_t *pMsgIn, uint8_t appInstan
     	temp_capInfoRxWhenIdle_c = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoRxWhenIdle_c;
     	temp_capInfoDavideFfd_c = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoDeviceFfd_c;
     	nodeAddr++;
-    	if(nodeAddr == 5)
+    	if(nodeAddr == 6)
     	{
-    		nodeAddr = 0;
+    		nodeAddr = 1;
     	}
     }
 
@@ -798,17 +798,17 @@ static uint8_t App_SendAssociateResponse(nwkMessage_t *pMsgIn, uint8_t appInstan
        different short addresses. However, if a device do not want to use
        short addresses at all in the PAN, a short address of 0xFFFE must
        be assigned to it. */
-    if(pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoAllocAddr_c)
-    {
-      /* Assign a unique short address less than 0xfffe if the device requests so. */
-      pAssocRes->assocShortAddress = 0x0001;
-    }
-    else
-    {
-      /* A short address of 0xfffe means that the device is granted access to
-         the PAN (Associate successful) but that long addressing is used.*/
-      pAssocRes->assocShortAddress = 0xFFFE;
-    }
+//    if(pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoAllocAddr_c)
+//    {
+//      /* Assign a unique short address less than 0xfffe if the device requests so. */
+//      pAssocRes->assocShortAddress = nodeAddr;
+//    }
+//    else
+//    {
+//      /* A short address of 0xfffe means that the device is granted access to
+//         the PAN (Associate successful) but that long addressing is used.*/
+//      pAssocRes->assocShortAddress = 0xFFFE;
+//    }
     /* Get the 64 bit address of the device requesting association. */
     FLib_MemCpy(&pAssocRes->deviceAddress, &pMsgIn->msgData.associateInd.deviceAddress, 8);
     /* Association granted. May also be gPanAtCapacity_c or gPanAccessDenied_c. */
