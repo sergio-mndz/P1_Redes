@@ -391,9 +391,10 @@ void AppThread(uint32_t argument)
           {
               /* Process it */
               App_HandleMcpsInput(pMsgIn, 0);
-              ((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.pMsdu++;
+              temp_msg = ((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.pMsdu;
+
               strcpy(msg_received, temp_msg);
-              cntr_received = (uint8_t)(msg_received[10] - '0');
+              cntr_received = (uint8_t)(msg_received[9] )- 48;
               turn_LED(cntr_received);
               /* Messages from the MCPS must always be freed. */
               MSG_Free(pMsgIn);
