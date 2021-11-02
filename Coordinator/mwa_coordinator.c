@@ -80,6 +80,15 @@ extern void Mac_SetExtendedAddress(uint8_t *pAddr, instanceId_t instanceId);
 *************************************************************************************
 ************************************************************************************/
 
+#define MAX_NODES 5
+
+typedef MAC_STRUCT Nodes
+{
+	uint16_t mShortAddress;		// 0x0001 2 bytes
+	uint64_t mExtendedAddress;	// MAC de 8 bytes
+	uint8_t RxOnWhenIdle;		// RXOnWhenIdle = 1, continue working in idle
+	uint8_t DeviceType;			// 1 = FFD or 0 = RFD
+} g_Node_t;
 
 /************************************************************************************
 *************************************************************************************
@@ -129,6 +138,13 @@ uint8_t msg_received[10];
 uint8_t cntr_received;
 uint8_t src_address[12];
 uint8_t *temp_msg;
+
+static g_Node_t node_network[MAX_NODES];
+static bool_t isNodeNew = false;
+static uint8_t nodeAddr = 0;
+
+static uint8_t temp_capInfoRxWhenIdle_c;
+static uint8_t temp_capInfoDavideFfd_c;
 
 /************************************************************************************
 *************************************************************************************
@@ -732,6 +748,7 @@ static uint8_t App_SendAssociateResponse(nwkMessage_t *pMsgIn, uint8_t appInstan
 {
   mlmeMessage_t *pMsg;
   mlmeAssociateRes_t *pAssocRes;
+  uint8_t i;
  
   Serial_Print(interfaceId,"Sending the MLME-Associate Response message to the MAC...", gAllowToBlock_d);
  
@@ -744,6 +761,37 @@ static uint8_t App_SendAssociateResponse(nwkMessage_t *pMsgIn, uint8_t appInstan
 
     /* Create the Associate response message data. */
     pAssocRes = &pMsg->msgData.associateRes;
+
+    for(i = 0; i < MAX_NODES; i++)
+    {
+    	if(node_network[i].mExtendedAddress == pMsgIn->msgData.associateInd.deviceAddress)
+    	{
+    		pAssocRes->assocShortAddress = node_network[i].mShortAddress;
+    		isNodeNew = false;
+    		break;
+    	}
+    	else
+    	{
+    		isNodeNew = true;
+    	}
+    }
+
+    if(true == isNodeNew)
+    {
+    	pAssocRes->assocShortAddress = nodeAddr;
+    	node_network[nodeAddr].mShortAddress = nodeAddr;
+    	node_network[nodeAddr].mExtendedAddress = pMsgIn->msgData.associateInd.deviceAddress;
+    	node_network[nodeAddr].RxOnWhenIdle = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoRxWhenIdle_c;
+    	node_network[nodeAddr].DeviceType = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoDeviceFfd_c;
+    	isNodeNew = false;
+    	temp_capInfoRxWhenIdle_c = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoRxWhenIdle_c;
+    	temp_capInfoDavideFfd_c = pMsgIn->msgData.associateInd.capabilityInfo & gCapInfoDeviceFfd_c;
+    	nodeAddr++;
+    	if(nodeAddr == 5)
+    	{
+    		nodeAddr = 0;
+    	}
+    }
 
     /* Assign a short address to the device. In this example we simply
        choose 0x0001. Though, all devices and coordinators in a PAN must have
@@ -776,6 +824,17 @@ static uint8_t App_SendAssociateResponse(nwkMessage_t *pMsgIn, uint8_t appInstan
     if( gSuccess_c == NWK_MLME_SapHandler( pMsg, macInstance ) )
     {
       Serial_Print( interfaceId,"Done\n\r", gAllowToBlock_d );
+
+      Serial_Print(interfaceId," Short Address: 0x",gAllowToBlock_d);
+      Serial_PrintHex(interfaceId, (uint8_t*)&pAssocRes->assocShortAddress, (uint8_t)2, gPrtHexNoFormat_c);
+      Serial_Print(interfaceId,"\n\r Extended Address: 0x", gAllowToBlock_d);
+      Serial_PrintHex(interfaceId, (uint8_t*)&pAssocRes->deviceAddress, (uint8_t)8, gPrtHexNoFormat_c);
+      Serial_Print(interfaceId,"\n\r RxOnWhenIdle: ", gAllowToBlock_d);
+      Serial_PrintHex(interfaceId, (uint8_t*)&temp_capInfoRxWhenIdle_c, (uint8_t)1, gPrtHexNoFormat_c);
+      Serial_Print(interfaceId,"\n\r DeviceType: ", gAllowToBlock_d);
+      Serial_PrintHex(interfaceId, (uint8_t*)&temp_capInfoDavideFfd_c, (uint8_t)1, gPrtHexNoFormat_c);
+      Serial_Print(interfaceId,"\n\r", gAllowToBlock_d);
+
       return errorNoError;
     }
     else
