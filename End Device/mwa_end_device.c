@@ -213,6 +213,7 @@ void main_task(uint32_t param)
 		Phy_Init();
 		RNG_Init(); /* RNG must be initialized after the PHY is Initialized */
 		MAC_Init();
+		timerTask_Init();
 #if mEnterLowPowerWhenIdle_c
 		PWR_Init();
 		PWR_DisallowDeviceToSleep();

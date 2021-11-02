@@ -8,6 +8,7 @@
 #include "Timers.h"
 
 osaEventId_t timerEvents;
+osaEventId_t myTaskEvents;
 /* Global Variable to store our TimerID */
 tmrTimerID_t timer3sID;
 /* Handler ID for task */
