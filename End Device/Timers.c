@@ -20,6 +20,8 @@ volatile uint8_t gLedCount = 0;
 static void taskTimerCallback(void *param)
 {
 	OSA_EventSet(timerEvents, gTimerTaskEvent1_c);
+
+	/**este evento sera usado para incrementar el contador*/
 }
 
 void My_Task(osaTaskParam_t argument)
@@ -99,6 +101,11 @@ void set_LedCount(uint8_t newCount)
 		gLedCount = newCount;
 	}
 }
+
+ uint8_t get_LedCount( void )
+ {
+	 return gLedCount ;
+ }
 
 void set_LedState()
 {
