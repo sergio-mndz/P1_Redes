@@ -21,6 +21,8 @@
 #include "LED.h"
 #include "Keyboard.h"
 
+#include <string.h>
+
 /* Fwk */
 #include "SecLib.h"
 #include "SerialManager.h"
@@ -28,7 +30,7 @@
 #include "MemManager.h"
 #include "TimersManager.h"
 #include "FunctionLib.h"
-
+#include "LED_Control.h"
 /* 802.15.4 */
 #include "PhyInterface.h"
 #include "MacInterface.h"
@@ -36,8 +38,6 @@
 /* KSDK */
 #include "board.h"
 #include "fsl_os_abstraction.h"
-
-#include "MyNewTask.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -125,6 +125,10 @@ osaEventId_t          mAppEvent;
 /* The current state of the applications state machine */
 uint8_t gState;
 
+uint8_t msg_received[10];
+uint8_t cntr_received;
+uint8_t *temp_msg;
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -162,7 +166,6 @@ void main_task(uint32_t param)
         Phy_Init();
         RNG_Init(); /* RNG must be initialized after the PHY is Initialized */
         MAC_Init();
-        MyTask_Init(); /* INIT MY NEW TASK */
         
         /* Bind to MAC layer */
         macInstance = BindToMAC( (instanceId_t)0 );
@@ -329,7 +332,6 @@ void AppThread(uint32_t argument)
           /* Stay in this state until the Start confirm message
           arrives, and then goto the Listen state. */
 
-    	  MyTaskTimer_Start();
 
           if (ev & gAppEvtMessageFromMLME_c)
           {
@@ -344,7 +346,6 @@ void AppThread(uint32_t argument)
                       Serial_PrintHex(interfaceId,(uint8_t *)&mShortAddress, 2, gPrtHexNoFormat_c);
                       Serial_Print(interfaceId,".\n\rReady to send and receive data over the UART.\n\r\n\r", gAllowToBlock_d);
                       
-                      MyTaskTimer_Stop();
 
                       gState = stateListen;
                       OSA_EventSet(mAppEvent, gAppEvtDummyEvent_c);
@@ -390,6 +391,10 @@ void AppThread(uint32_t argument)
           {
               /* Process it */
               App_HandleMcpsInput(pMsgIn, 0);
+              ((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.pMsdu++;
+              strcpy(msg_received, temp_msg);
+              cntr_received = (uint8_t)(msg_received[10] - '0');
+              turn_LED(cntr_received);
               /* Messages from the MCPS must always be freed. */
               MSG_Free(pMsgIn);
               pMsgIn = NULL;
