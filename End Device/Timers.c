@@ -26,6 +26,9 @@ static void taskTimerCallback(void *param)
 
 void My_Task(osaTaskParam_t argument)
 {
+
+	volatile force_green_led = 0 ;
+	volatile force_blue_led = 0 ;
 	osaEventFlags_t customEvent;
 	while(1)
 	{
@@ -39,6 +42,7 @@ void My_Task(osaTaskParam_t argument)
 		switch(customEvent){
 		case gTimerTaskEvent1_c:
 			/* 3 seconds passed so increment LED count */
+
 			increment_LedCount();
 			set_LedState();
 
@@ -46,12 +50,16 @@ void My_Task(osaTaskParam_t argument)
 		case gTimerTaskEvent2_c: /* Switch 3 pressed */
 			set_LedCount(GREEN);
 			set_LedState();
-			resetTimer();
+
+			force_green_led= 1 ;
+			//resetTimer();
 			break;
 		case gTimerTaskEvent3_c: /* Switch 4 pressed */
 			set_LedCount(BLUE);
 			set_LedState();
-			resetTimer();
+
+			force_blue_led = 1 ;
+			//resetTimer();
 			break;
 		default:
 			break;
@@ -75,9 +83,9 @@ void timer3s_Start(void)
 {
 	timer3sID = TMR_AllocateTimer();
 	TMR_StartIntervalTimer(timer3sID, /*myTimerID*/
-		3000, /* Timer's Timeout */
-		taskTimerCallback, /* pointer to myTaskTimerCallback function */
-		NULL
+			3000, /* Timer's Timeout */
+			taskTimerCallback, /* pointer to myTaskTimerCallback function */
+			NULL
 	);
 }
 
@@ -85,9 +93,9 @@ void resetTimer(void)
 {
 	timer3sID = TMR_AllocateTimer();
 	TMR_StartIntervalTimer(timer3sID, /*myTimerID*/
-		3000, /* Timer's Timeout */
-		taskTimerCallback, /* pointer to myTaskTimerCallback function */
-		NULL
+			3000, /* Timer's Timeout */
+			taskTimerCallback, /* pointer to myTaskTimerCallback function */
+			NULL
 	);
 }
 
@@ -99,11 +107,17 @@ void timer3s_Stop(void)
 
 void increment_LedCount()
 {
-    gLedCount++;
-    if(gLedCount > WHITE )
-    {
-        gLedCount = RED ;
-    }
+	gLedCount++;
+	if(gLedCount > WHITE )
+	{
+		gLedCount = RED ;
+	}
+}
+
+
+void reset_LedCount()
+{
+	gLedCount = 0 ;
 }
 
 void set_LedCount(uint8_t newCount)
@@ -114,28 +128,28 @@ void set_LedCount(uint8_t newCount)
 	}
 }
 
- uint8_t get_LedCount( void )
- {
-	 return gLedCount ;
- }
+uint8_t get_LedCount( void )
+{
+	return gLedCount ;
+}
 
 void set_LedState()
 {
-    LED_TurnOffAllLeds();
+	LED_TurnOffAllLeds();
 
-    switch (  gLedCount )
-    {
-    case  0 :
-        LED_TurnOnLed(LED2);
-        break;
-    case  1  :
-        LED_TurnOnLed(LED3);
-        break;
-    case  2 :
-        LED_TurnOnLed(LED4);
-        break;
-    case  3 :
-        LED_TurnOnAllLeds();
-        break;
-    }
+	switch (  gLedCount )
+	{
+	case  0 ://RED
+		LED_TurnOnLed(LED2);
+		break;
+	case  1  ://green
+		LED_TurnOnLed(LED3);
+		break;
+	case  2 ://blue
+		LED_TurnOnLed(LED4);
+		break;
+	case  3 ://white
+		LED_TurnOnAllLeds();
+		break;
+	}
 }

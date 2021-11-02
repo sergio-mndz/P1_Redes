@@ -49,4 +49,6 @@ uint8_t get_LedCount( void );
 
 void set_LedState();
 
+void reset_LedCount();
+
 #endif /* TIMERS_H_ */

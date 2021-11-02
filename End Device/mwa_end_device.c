@@ -1194,7 +1194,7 @@ static void App_TransmitUartData(void)
 		Serial_Read(interfaceId, mpPacket->msgData.dataReq.pMsdu, count, &count);
 
 
-		 mpPacket->msgData.dataReq.pMsdu = mystring ;
+		mpPacket->msgData.dataReq.pMsdu = mystring ;
 		/* Create the header using coordinator information gained during
         the scan procedure. Also use the short address we were assigned
         by the coordinator during association. */
@@ -1294,17 +1294,38 @@ static void App_HandleKeys
 	case gKBD_EventLongSW3_c:
 	case gKBD_EventLongSW4_c:
 	case gKBD_EventSW1_c:
-	case gKBD_EventSW2_c:
-	case gKBD_EventSW3_c:
+
+		if(gState == stateInit)
+		{
+			LED_StopFlashingAllLeds();
+			OSA_EventSet(mAppEvent, gAppEvtDummyEvent_c);
+		}
+
 		if(stateListen == gState)
 		{
 			OSA_EventSet(timerEvents, gTimerTaskEvent2_c);
 		}
-	case gKBD_EventSW4_c:
+		break ;
+	case gKBD_EventSW2_c:
+
+		if(gState == stateInit)
+		{
+			LED_StopFlashingAllLeds();
+			OSA_EventSet(mAppEvent, gAppEvtDummyEvent_c);
+		}
 		if(stateListen == gState)
 		{
 			OSA_EventSet(timerEvents, gTimerTaskEvent3_c);
 		}
+		break ;
+	case gKBD_EventSW3_c:
+
+		break ;
+	case gKBD_EventSW4_c:
+		break;
+
+
+
 #if gTsiSupported_d
 	case gKBD_EventSW5_c:
 	case gKBD_EventSW6_c:
@@ -1313,11 +1334,7 @@ static void App_HandleKeys
 	case gKBD_EventLongSW5_c:
 	case gKBD_EventLongSW6_c:
 #endif
-		if(gState == stateInit)
-		{
-			LED_StopFlashingAllLeds();
-			OSA_EventSet(mAppEvent, gAppEvtDummyEvent_c);
-		}
+
 	}
 #endif
 }
