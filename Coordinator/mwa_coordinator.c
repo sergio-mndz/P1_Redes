@@ -127,6 +127,7 @@ uint8_t gState;
 
 uint8_t msg_received[10];
 uint8_t cntr_received;
+uint8_t src_address[12];
 uint8_t *temp_msg;
 
 /************************************************************************************
@@ -396,6 +397,15 @@ void AppThread(uint32_t argument)
               strcpy(msg_received, temp_msg);
               cntr_received = (uint8_t)(msg_received[9] )- 48;
               turn_LED(cntr_received);
+
+
+
+              Serial_Print(interfaceId, "\n\rSource Address: 0x", gAllowToBlock_d);
+              Serial_PrintHex(interfaceId, (uint8_t*)((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.srcAddr, (uint8_t)((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.srcAddrMode, gPrtHexNoFormat_c);
+              Serial_Print(interfaceId,"\n\rLink Quality: ", gAllowToBlock_d);
+              Serial_PrintDec(interfaceId, ((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.mpduLinkQuality);
+              Serial_Print(interfaceId,"\n\rSize of payload: ", gAllowToBlock_d);
+              Serial_PrintDec(interfaceId, ((mcpsToNwkMessage_t*)pMsgIn)->msgData.dataInd.msduLength);
               /* Messages from the MCPS must always be freed. */
               MSG_Free(pMsgIn);
               pMsgIn = NULL;
@@ -564,11 +574,11 @@ static void App_HandleScanEdConfirm(nwkMessage_t *pMsg)
   /* Select default channel */
   mLogicalChannel = 19;
   
-  /* Search for the channel with least energy */
-/*  for(idx=0, n=0; n<16; n++)
+  /* Search for the channel with least energy
+  for(idx=0, n=0; n<16; n++)
   {
-      /* Channel numbering is 11 to 26 both inclusive */
-/*      Channel = n + 11;
+      Channel numbering is 11 to 26 both inclusive
+      Channel = n + 11;
       if( (chMask & (1 << Channel)) )
       {
           if( pEdList[idx] < minEnergy )
